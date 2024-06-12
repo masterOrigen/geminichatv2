@@ -4,18 +4,26 @@ import pandas as pd
 import requests
 import os
 from dotenv import load_dotenv
-import geminai
 
 # Cargar variables de entorno desde el archivo .env
 load_dotenv()
 
 # Obtener la clave de API de Gemini IA del archivo .env
 GEMINIAI_API_KEY = os.getenv('GEMINIAI_API_KEY')
+API_URL = 'https://api.gemini.ai/v1/ask'
 
 # Función para hacer preguntas a Gemini IA
 def hacer_pregunta(texto):
-    respuesta = geminai.ask(texto)
-    return respuesta
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {GEMINIAI_API_KEY}'
+    }
+    data = {
+        'question': texto
+    }
+    response = requests.post(API_URL, headers=headers, json=data)
+    respuesta = response.json()
+    return respuesta['response']
 
 # Configurar el título de la aplicación
 st.title('App de Preguntas con Gemini IA')
