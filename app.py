@@ -9,7 +9,7 @@ import os
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_API_URL = os.getenv("GEMINI_API_URL")
+
 
 # Función para manejar la subida de archivos y mostrar las preguntas
 def handle_file_upload():
