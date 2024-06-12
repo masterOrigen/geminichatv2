@@ -5,6 +5,7 @@ import requests
 import os
 from dotenv import load_dotenv
 import mimetypes
+import re
 
 # Cargar variables de entorno desde el archivo .env
 load_dotenv()
@@ -24,7 +25,7 @@ def hacer_pregunta(texto):
     }
     response = requests.post(API_URL, headers=headers, json=data)
     respuesta = response.json()
-    return respuesta['result']  # Corrección: usar el campo correcto para la respuesta
+    return respuesta['result'] 
 
 # Configurar el título de la aplicación
 st.title('App de Preguntas con Gemini IA')
@@ -58,10 +59,14 @@ if archivo is not None:
     # Si es una URL de YouTube, hacer una pregunta sobre el video
     elif tipo_archivo == 'application/octet-stream':
         url = str(archivo.read(), 'utf-8')
-        st.write(f'URL de YouTube: {url}')
-        respuesta = hacer_pregunta(f'Análisis de {url}')
-        st.write('Respuesta de Gemini IA:')
-        st.write(respuesta)
+        # Validar si la URL es de YouTube
+        if re.match(r'https?://(?:www\.)?youtube\.com/watch\?v=.*', url):
+            st.write(f'URL de YouTube: {url}')
+            respuesta = hacer_pregunta(f'Análisis de {url}')
+            st.write('Respuesta de Gemini IA:')
+            st.write(respuesta)
+        else:
+            st.write('Formato de archivo no compatible')
     else:
         st.write('Formato de archivo no compatible')
 
