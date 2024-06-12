@@ -1,8 +1,7 @@
 import streamlit as st
 from PIL import Image
 import pandas as pd
-import requests
-import io
+import httpx
 from dotenv import load_dotenv
 import os
 
@@ -80,8 +79,6 @@ def process_query(query, uploaded_file, youtube_url):
 
 # Función de ejemplo para enviar la consulta a Gémini IA
 def send_query_to_gemini(query, uploaded_file, youtube_url):
-    # Aquí implementarías la lógica para comunicarte con Gémini IA
-    # Por ejemplo, usando requests para enviar una solicitud HTTP
     headers = {
         'Authorization': f'Bearer {GEMINI_API_KEY}',
         'Content-Type': 'application/json',
@@ -91,7 +88,8 @@ def send_query_to_gemini(query, uploaded_file, youtube_url):
         'uploaded_file': uploaded_file,
         'youtube_url': youtube_url
     }
-    response = requests.post(GEMINI_API_URL, headers=headers, json=data)
+    with httpx.Client() as client:
+        response = client.post(GEMINI_API_URL, headers=headers, json=data)
     return response.json()
 
 if __name__ == "__main__":
