@@ -88,9 +88,6 @@ def send_query_to_gemini(query, uploaded_file, youtube_url):
         'uploaded_file': uploaded_file,
         'youtube_url': youtube_url
     }
-    with httpx.Client() as client:
-        response = client.post(GEMINI_API_URL, headers=headers, json=data)
-    return response.json()
 
 if __name__ == "__main__":
     handle_file_upload()
