@@ -2,82 +2,97 @@ import streamlit as st
 from PIL import Image
 import pandas as pd
 import requests
-import os
+import io
 from dotenv import load_dotenv
-import mimetypes
-import re
+import os
 
-# Cargar variables de entorno desde el archivo .env
+# Cargar variables de entorno
 load_dotenv()
 
-# Obtener la clave de API de Gemini IA del archivo .env
-GEMINIAI_API_KEY = os.getenv('GEMINIAI_API_KEY')
-API_URL = 'https://api.gemini.ai/v1/ask'
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_API_URL = os.getenv("GEMINI_API_URL")
 
-# Función para hacer preguntas a Gemini IA
-def hacer_pregunta(texto):
+# Función para manejar la subida de archivos y mostrar las preguntas
+def handle_file_upload():
+    st.title("Conectar Gémini IA")
+
+    # Subir archivos
+    uploaded_file = st.file_uploader("Sube un archivo", type=["png", "jpg", "jpeg", "mp4", "csv"])
+    
+    if uploaded_file:
+        file_type = uploaded_file.type
+
+        if file_type in ["image/png", "image/jpg", "image/jpeg"]:
+            st.image(uploaded_file, caption="Imagen subida", use_column_width=True)
+            process_image(uploaded_file)
+        
+        elif file_type == "video/mp4":
+            st.video(uploaded_file)
+            process_video(uploaded_file)
+        
+        elif file_type == "text/csv":
+            df = pd.read_csv(uploaded_file)
+            st.write(df)
+            process_csv(df)
+    
+    # Entrada de URL de YouTube
+    youtube_url = st.text_input("Introduce la URL de un canal de YouTube")
+
+    if youtube_url:
+        process_youtube_url(youtube_url)
+    
+    # Área de texto para realizar preguntas
+    query = st.text_area("Haz una pregunta sobre el archivo subido")
+
+    if st.button("Enviar"):
+        if query:
+            process_query(query, uploaded_file, youtube_url)
+        else:
+            st.warning("Por favor, ingresa una pregunta.")
+
+# Función para procesar imágenes
+def process_image(image):
+    # Aquí iría el código para procesar la imagen con Gémini IA
+    st.write("Procesando imagen...")
+
+# Función para procesar videos
+def process_video(video):
+    # Aquí iría el código para procesar el video con Gémini IA
+    st.write("Procesando video...")
+
+# Función para procesar archivos CSV
+def process_csv(df):
+    # Aquí iría el código para procesar el CSV con Gémini IA
+    st.write("Procesando CSV...")
+
+# Función para procesar URL de YouTube
+def process_youtube_url(url):
+    # Aquí iría el código para procesar la URL con Gémini IA
+    st.write(f"Procesando URL de YouTube: {url}")
+
+# Función para procesar la consulta del usuario
+def process_query(query, uploaded_file, youtube_url):
+    # Aquí iría el código para enviar la pregunta a Gémini IA y obtener la respuesta
+    st.write(f"Realizando consulta: {query}")
+    # Suponiendo que tienes una función `send_query_to_gemini` para enviar la consulta
+    response = send_query_to_gemini(query, uploaded_file, youtube_url)
+    st.write(response)
+
+# Función de ejemplo para enviar la consulta a Gémini IA
+def send_query_to_gemini(query, uploaded_file, youtube_url):
+    # Aquí implementarías la lógica para comunicarte con Gémini IA
+    # Por ejemplo, usando requests para enviar una solicitud HTTP
     headers = {
+        'Authorization': f'Bearer {GEMINI_API_KEY}',
         'Content-Type': 'application/json',
-        'Authorization': f'Bearer {GEMINIAI_API_KEY}'
     }
     data = {
-        'question': texto
+        'query': query,
+        'uploaded_file': uploaded_file,
+        'youtube_url': youtube_url
     }
-    response = requests.post(API_URL, headers=headers, json=data)
-    respuesta = response.json()
-    return respuesta['result'] 
+    response = requests.post(GEMINI_API_URL, headers=headers, json=data)
+    return response.json()
 
-# Configurar el título de la aplicación
-st.title('App de Preguntas con Gemini IA')
-
-# Configurar la barra lateral
-st.sidebar.title('Subir Archivos')
-archivo = st.sidebar.file_uploader('Subir Archivo', type=['jpg', 'jpeg', 'png', 'mp4', 'csv', 'txt'])
-
-# Mostrar el archivo subido
-if archivo is not None:
-    st.sidebar.write('Archivo subido exitosamente!')
-    tipo_archivo = mimetypes.guess_type(archivo.name)[0]
-    st.sidebar.write(f'Tipo de archivo: {tipo_archivo}')
-    st.sidebar.write(f'Tamaño del archivo: {len(archivo.getvalue())} bytes')
-
-    # Mostrar la imagen si es una imagen
-    if tipo_archivo.startswith('image'):
-        imagen = Image.open(archivo)
-        st.image(imagen, caption='Archivo subido', use_column_width=True)
-    # Mostrar el video si es un video
-    elif tipo_archivo.startswith('video'):
-        st.video(archivo)
-    # Leer el archivo CSV si es un archivo CSV
-    elif tipo_archivo == 'text/csv':
-        datos = pd.read_csv(archivo)
-        st.write(datos)
-    # Leer el texto si es un archivo de texto
-    elif tipo_archivo == 'text/plain':
-        texto = str(archivo.read(), 'utf-8')
-        st.write(texto)
-    # Si es una URL de YouTube, hacer una pregunta sobre el video
-    elif tipo_archivo == 'application/octet-stream':
-        url = str(archivo.read(), 'utf-8')
-        # Validar si la URL es de YouTube
-        if re.match(r'https?://(?:www\.)?youtube\.com/watch\?v=.*', url):
-            st.write(f'URL de YouTube: {url}')
-            respuesta = hacer_pregunta(f'Análisis de {url}')
-            st.write('Respuesta de Gemini IA:')
-            st.write(respuesta)
-        else:
-            st.write('Formato de archivo no compatible')
-    else:
-        st.write('Formato de archivo no compatible')
-
-# Área de texto para hacer preguntas
-pregunta = st.text_input('Haz una pregunta sobre el archivo subido')
-
-# Hacer una pregunta si se ha ingresado texto
-if st.button('Enviar pregunta'):
-    if pregunta:
-        respuesta = hacer_pregunta(pregunta)
-        st.write('Respuesta de Gemini IA:')
-        st.write(respuesta)
-    else:
-        st.write('Por favor, ingresa una pregunta')
+if __name__ == "__main__":
+    handle_file_upload()
