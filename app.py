@@ -10,7 +10,7 @@ load_dotenv()
 
 # Obtener la clave de API de Gemini IA del archivo .env
 GEMINIAI_API_KEY = os.getenv('GEMINIAI_API_KEY')
-API_URL = 'https://api.gemini.ai/v1/ask'
+API_URL = 'https://api.gemini.ai/endpoint'
 
 # Función para hacer preguntas a Gemini IA
 def hacer_pregunta(texto):
